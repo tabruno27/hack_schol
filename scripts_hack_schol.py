@@ -1,10 +1,13 @@
-import argparse
 import random
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from datacenter.models import Schoolkid, Mark, Chastisement, Lesson, Commendation, Subject
 
 
 def get_schoolkid(full_name):
+    if not full_name.strip():
+        print("Ошибка: Полное имя ученика не может быть пустым.")
+        return None
+
     try:
         child = Schoolkid.objects.get(full_name=full_name)
         print(f"Ученик найден: {child.full_name}")
@@ -13,7 +16,6 @@ def get_schoolkid(full_name):
         print(f"Найдено несколько учеников с именем '{full_name}'. Пожалуйста, уточните запрос.")
     except ObjectDoesNotExist:
         print(f"Ученик с именем '{full_name}' не найден.")
-
 
 
 def fix_marks(child):
@@ -28,7 +30,6 @@ def remove_chastisements(child):
     chastisements = Chastisement.objects.filter(schoolkid=child)
     chastisements.delete()
     print(f"Замечания ученика {child.full_name} удалены.")
-
 
 
 def create_commendation(child, subject_name):
@@ -61,37 +62,3 @@ def create_commendation(child, subject_name):
         created=last_lesson.date
     )
     print(f"Похвала добавлена для ученика {child.full_name} по предмету '{subject_name}'.")
-
-
-def main():
-    parser = argparse.ArgumentParser(description='Управление записями учеников.')
-    parser.add_argument('full_name', type=str, help='Полное имя ученика')
-    parser.add_argument('--subject', type=str, help='Название предмета для похвалы')
-    parser.add_argument('--fix_marks', action='store_true', help='Исправить плохие оценки')
-    parser.add_argument('--remove_chastisements', action='store_true', help='Удалить замечания')
-
-    args = parser.parse_args()
-
-    if not args.full_name.strip():
-        print("Ошибка: Полное имя ученика не может быть пустым.")
-        return
-
-    child = get_schoolkid(args.full_name)
-
-    if child:
-        if args.fix_marks:
-            fix_marks(child)
-        if args.remove_chastisements:
-            remove_chastisements(child)
-        if args.subject:
-            if not args.subject.strip():
-                print("Ошибка: Название предмета не может быть пустым.")
-                return
-            create_commendation(child, args.subject)
-
-
-if __name__=="__main__":
-    main()
-
-
-
