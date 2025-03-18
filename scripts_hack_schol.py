@@ -3,6 +3,18 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from datacenter.models import Schoolkid, Mark, Chastisement, Lesson, Commendation, Subject
 
 
+COMMENDATION_TEXTS = [
+    "Отличная работа!",
+    "Ты настоящая звезда на уроках!",
+    "Твои знания впечатляют! Продолжай в том же духе!",
+    "Ты растешь над собой!",
+    "Твой талант просто неоспорим!",
+    "Я вижу, как ты стараешься!",
+    "Замечательно!",
+    "Я горжусь тобой!"
+]
+
+
 def get_schoolkid(full_name):
     if not full_name.strip():
         print("Ошибка: Полное имя ученика не может быть пустым.")
@@ -14,15 +26,14 @@ def get_schoolkid(full_name):
         return child
     except MultipleObjectsReturned:
         print(f"Найдено несколько учеников с именем '{full_name}'. Пожалуйста, уточните запрос.")
+        return None
     except ObjectDoesNotExist:
         print(f"Ученик с именем '{full_name}' не найден.")
+        return None
 
 
 def fix_marks(child):
-    bad_marks = Mark.objects.filter(schoolkid=child, points__in=[2,3])
-    for mark in bad_marks:
-        mark.points = 5
-        mark.save()
+    bad_marks = Mark.objects.filter(schoolkid=child, points__in=[2, 3]).update(points=5)
     print(f"Оценки ученика {child.full_name} исправлены.")
 
 
@@ -44,16 +55,8 @@ def create_commendation(child, subject_name):
     if not last_lesson:
         print(f"Уроки для предмета '{subject_name}' не найдены.")
         return
-    commendation_texts = ["Отличная работа!",
-                          "Ты настоящая звезда на уроках!",
-                          "Твои знания впечатляют! Продолжай в том же духе!",
-                          "Ты растешь над собой!",
-                          "Твой талант просто неоспорим!",
-                          "Я вижу, как ты стараешся!",
-                          "Замечательно!",
-                          "Я горжусь тобой!"
-                          ]
-    commendation_text = random.choice(commendation_texts)
+  
+    commendation_text = random.choice(COMMENDATION_TEXTS)
     Commendation.objects.create(
         text=commendation_text,
         schoolkid=child,
